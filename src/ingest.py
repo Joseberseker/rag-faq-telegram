@@ -30,9 +30,22 @@ class Chunk:
         return f"{self.source_file}::{_slugify(self.section_title)}"
 
 
-def _last_paragraph(text: str) -> str:
+MAX_OVERLAP_WORDS = 25
+
+
+def _last_paragraph(text: str, max_words: int = MAX_OVERLAP_WORDS) -> str:
+    """Cola del último párrafo de la sección anterior, acotada a pocas
+    palabras. Si no se acota, una sección anterior de un solo párrafo largo
+    (ej. "Pagos en cuotas", un párrafo de ~50 palabras) puede dominar el
+    embedding del siguiente chunk y hacer que el retrieval cite la sección
+    equivocada — se descubrió probando el widget con "¿puedo pagar en
+    cuotas?", que citaba "Facturación electrónica" en vez de la sección
+    correcta."""
     paragraphs = [p.strip() for p in text.strip().split("\n\n") if p.strip()]
-    return paragraphs[-1] if paragraphs else ""
+    if not paragraphs:
+        return ""
+    words = paragraphs[-1].split()
+    return " ".join(words[-max_words:])
 
 
 def split_markdown_by_headers(text: str, source_file: str) -> list[Chunk]:

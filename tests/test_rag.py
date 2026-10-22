@@ -1,4 +1,4 @@
-from src.rag import MAX_RELEVANT_DISTANCE, RetrievedChunk, build_messages
+from src.rag import MAX_CITED_SOURCES, MAX_RELEVANT_DISTANCE, RetrievedChunk, _top_sources, build_messages
 
 RELEVANT_CHUNK = RetrievedChunk(
     section_title="Costos de envío",
@@ -53,3 +53,27 @@ def test_build_messages_preserves_conversation_history():
     assert messages[0]["role"] == "system"
     assert messages[1:3] == history
     assert messages[-1]["role"] == "user"
+
+
+def test_top_sources_orders_by_distance_not_alphabetically():
+    far_but_relevant = RetrievedChunk(
+        section_title="Zonas de cobertura", source_file="envios.md", content="x", distance=0.35
+    )
+    close = RetrievedChunk(
+        section_title="Costos de envío", source_file="envios.md", content="x", distance=0.10
+    )
+    assert _top_sources([far_but_relevant, close]) == ["Costos de envío", "Zonas de cobertura"]
+
+
+def test_top_sources_deduplicates_repeated_section_titles():
+    chunk_a = RetrievedChunk(section_title="Costos de envío", source_file="envios.md", content="x", distance=0.10)
+    chunk_b = RetrievedChunk(section_title="Costos de envío", source_file="envios.md", content="y", distance=0.20)
+    assert _top_sources([chunk_a, chunk_b]) == ["Costos de envío"]
+
+
+def test_top_sources_caps_at_max_cited_sources():
+    chunks = [
+        RetrievedChunk(section_title=f"Sección {i}", source_file="x.md", content="x", distance=0.1 * i)
+        for i in range(MAX_CITED_SOURCES + 3)
+    ]
+    assert len(_top_sources(chunks)) == MAX_CITED_SOURCES
