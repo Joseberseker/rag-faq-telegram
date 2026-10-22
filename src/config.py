@@ -18,3 +18,5 @@ CHROMA_COLLECTION_NAME = "kb-faq"
 MEMORY_DB_PATH = os.environ.get("MEMORY_DB_PATH", str(BASE_DIR / "memory.db"))
 
 RETRIEVAL_TOP_K = int(os.environ.get("RETRIEVAL_TOP_K", "4"))
+
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
