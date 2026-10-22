@@ -1,0 +1,49 @@
+/* Estilos de la landing de demo (no del widget — el widget inyecta su
+   propio CSS en widget.js para poder embeberse con un solo <script>). */
+
+:root {
+  --novashop-bg: #0f172a;
+  --novashop-fg: #e2e8f0;
+  --novashop-muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--novashop-bg);
+  color: var(--novashop-fg);
+}
+
+.hero {
+  padding: 48px 24px 24px;
+  text-align: center;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+}
+
+.hero p {
+  max-width: 520px;
+  margin: 0 auto;
+  color: var(--novashop-muted);
+}
+
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+  line-height: 1.5;
+}
+
+.content code {
+  background: #1e293b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NovaShop — demo de asistente FAQ</title>
+    <link rel="stylesheet" href="widget.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>NovaShop</h1>
+      <p>
+        Tienda en línea (demo). Pregúntale al asistente sobre envíos,
+        devoluciones, pagos o el estado de tu pedido — el botón de chat está
+        abajo a la derecha.
+      </p>
+    </header>
+
+    <main class="content">
+      <section>
+        <h2>¿Qué es esto?</h2>
+        <p>
+          Un widget de chat embebible con RAG 100% local (Ollama + Chroma):
+          consume la misma API (<code>/chat</code>) que usa el bot de
+          Telegram de este proyecto. Para ponerlo en tu propio sitio solo
+          necesitas este snippet:
+        </p>
+        <pre><code>&lt;script&gt;
+  window.RAG_WIDGET_CONFIG = { apiBaseUrl: "http://localhost:8000" };
+&lt;/script&gt;
+&lt;script src="widget.js"&gt;&lt;/script&gt;</code></pre>
+        <p>
+          Sin build step, sin dependencias — <code>widget.js</code> inyecta
+          su propio CSS y arma el panel de chat al cargar.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      window.RAG_WIDGET_CONFIG = {
+        apiBaseUrl: "http://localhost:8000",
+      };
+    </script>
+    <script src="widget.js"></script>
+  </body>
+</html>

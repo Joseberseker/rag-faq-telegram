@@ -15,6 +15,11 @@ from .llm_client import OllamaClient
 # "quién ganó el mundial") caen entre ~0.40 y ~0.46. 0.38 separa ambos grupos.
 MAX_RELEVANT_DISTANCE = 0.38
 
+# Con top_k=6 pueden pasar el umbral varias secciones relacionadas; mostrar
+# las 6 como "fuente" es ruido para el usuario del chat. Se citan solo las
+# más cercanas.
+MAX_CITED_SOURCES = 3
+
 SYSTEM_PROMPT = (
     "Eres el asistente de soporte de NovaShop, una tienda en línea. "
     "Responde SOLO con base en el contexto recuperado que se te entrega a "
@@ -114,5 +119,19 @@ def answer(query: str, history: list[dict] | None = None, llm: OllamaClient | No
     messages = build_messages(query, chunks, history)
     text = llm.chat(messages)
 
-    sources = sorted({c.section_title for c in relevant})
+    sources = _top_sources(relevant)
     return RagAnswer(text=text, sources=sources)
+
+
+def _top_sources(relevant: list[RetrievedChunk]) -> list[str]:
+    ordered = sorted(relevant, key=lambda c: c.distance)
+    seen: set[str] = set()
+    sources: list[str] = []
+    for chunk in ordered:
+        if chunk.section_title in seen:
+            continue
+        seen.add(chunk.section_title)
+        sources.append(chunk.section_title)
+        if len(sources) == MAX_CITED_SOURCES:
+            break
+    return sources
