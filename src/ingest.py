@@ -77,7 +77,9 @@ def ingest(kb_dir: Path = config.KB_DIR) -> int:
     embeddings = client.embed([c.content for c in chunks])
 
     chroma_client = chromadb.PersistentClient(path=config.CHROMA_PERSIST_DIR)
-    collection = chroma_client.get_or_create_collection(config.CHROMA_COLLECTION_NAME)
+    collection = chroma_client.get_or_create_collection(
+        config.CHROMA_COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
+    )
     collection.upsert(
         ids=[c.id for c in chunks],
         embeddings=embeddings,
