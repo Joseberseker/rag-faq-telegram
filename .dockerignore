@@ -1,0 +1,11 @@
+.venv/
+chroma_data/
+ollama_data/
+__pycache__/
+*.pyc
+.git/
+.env
+*.db
+web/
+pytest.ini
+tests/
