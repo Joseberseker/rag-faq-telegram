@@ -30,46 +30,34 @@ class Chunk:
         return f"{self.source_file}::{_slugify(self.section_title)}"
 
 
-MAX_OVERLAP_WORDS = 25
-
-
-def _last_paragraph(text: str, max_words: int = MAX_OVERLAP_WORDS) -> str:
-    """Cola del último párrafo de la sección anterior, acotada a pocas
-    palabras. Si no se acota, una sección anterior de un solo párrafo largo
-    (ej. "Pagos en cuotas", un párrafo de ~50 palabras) puede dominar el
-    embedding del siguiente chunk y hacer que el retrieval cite la sección
-    equivocada — se descubrió probando el widget con "¿puedo pagar en
-    cuotas?", que citaba "Facturación electrónica" en vez de la sección
-    correcta."""
-    paragraphs = [p.strip() for p in text.strip().split("\n\n") if p.strip()]
-    if not paragraphs:
-        return ""
-    words = paragraphs[-1].split()
-    return " ".join(words[-max_words:])
-
-
 def split_markdown_by_headers(text: str, source_file: str) -> list[Chunk]:
-    """Un chunk por sección `##`. Cada chunk (salvo el primero) lleva como
-    overlap el último párrafo de la sección anterior, para no perder
-    continuidad cuando el retrieval solo trae una sección aislada."""
+    """Un chunk por sección `##`, sin overlap entre secciones.
+
+    La primera versión agregaba como overlap el último párrafo de la
+    sección anterior, pensado para no perder continuidad. En la práctica
+    causó dos bugs reales al probar el bot:
+    1. Un párrafo largo de una sección podía dominar el embedding de la
+       siguiente y hacer que el retrieval citara la sección equivocada
+       ("¿puedo pagar en cuotas?" citaba "Facturación electrónica").
+    2. Acotar el overlap a N palabras (el primer intento de arreglo) podía
+       cortar la oración justo donde empezaba una negación — "No tiene
+       costo adicional" se volvía "tiene costo adicional" al perder la
+       primera palabra, invirtiendo el significado de una política real.
+    Las secciones de esta KB ya son respuestas autocontenidas por
+    diseño (una pregunta de FAQ por sección), así que el beneficio del
+    overlap no compensaba el riesgo. Se prefirió simplicidad correcta
+    sobre una heurística que seguía fallando."""
     matches = list(HEADER_RE.finditer(text))
     if not matches:
         return [Chunk(source_file=source_file, section_title=source_file, content=text.strip())]
 
-    sections: list[tuple[str, str]] = []
+    chunks: list[Chunk] = []
     for i, match in enumerate(matches):
         title = match.group(1).strip()
         start = match.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        sections.append((title, text[start:end].strip()))
-
-    chunks: list[Chunk] = []
-    previous_content = ""
-    for title, content in sections:
-        overlap = _last_paragraph(previous_content)
-        chunk_content = f"{overlap}\n\n{content}" if overlap else content
-        chunks.append(Chunk(source_file=source_file, section_title=title, content=chunk_content))
-        previous_content = content
+        content = text[start:end].strip()
+        chunks.append(Chunk(source_file=source_file, section_title=title, content=content))
     return chunks
 
 

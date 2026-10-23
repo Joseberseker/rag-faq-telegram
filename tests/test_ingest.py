@@ -24,15 +24,17 @@ def test_each_chunk_keeps_its_source_file():
     assert all(c.source_file == "sample.md" for c in chunks)
 
 
-def test_second_chunk_carries_overlap_from_previous_section():
+def test_chunks_do_not_leak_content_across_sections():
     chunks = split_markdown_by_headers(SAMPLE, source_file="sample.md")
-    assert "Segundo párrafo de la primera sección." in chunks[1].content
+    assert "Segundo párrafo de la primera sección." not in chunks[1].content
     assert "Contenido de la segunda sección." in chunks[1].content
 
 
-def test_first_chunk_has_no_overlap_prefix():
+def test_first_chunk_is_exactly_its_own_section():
     chunks = split_markdown_by_headers(SAMPLE, source_file="sample.md")
-    assert chunks[0].content.strip().startswith("Contenido de la primera sección.")
+    assert chunks[0].content == (
+        "Contenido de la primera sección.\n\nSegundo párrafo de la primera sección."
+    )
 
 
 def test_chunk_id_is_stable_and_namespaced_by_file():
