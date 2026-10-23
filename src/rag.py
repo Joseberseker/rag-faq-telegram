@@ -9,11 +9,16 @@ import chromadb
 from . import config
 from .llm_client import OllamaClient
 
-# Distancia coseno de Chroma (0 = idéntico, ~1 = sin relación). Calibrado
-# manualmente contra la KB de NovaShop: preguntas del dominio caen entre
-# ~0.19 y ~0.40; preguntas claramente fuera de dominio ("capital de Francia",
-# "quién ganó el mundial") caen entre ~0.40 y ~0.46. 0.38 separa ambos grupos.
-MAX_RELEVANT_DISTANCE = 0.38
+# Distancia coseno de Chroma (0 = idéntico, ~1 = sin relación). Recalibrado
+# con el set de preguntas doradas (eval/golden_questions.md): preguntas
+# reales del dominio, parafraseadas como las haría un cliente, llegaron a
+# caer hasta ~0.39 (ej. "me cobraron dos veces" vs. la sección "Problemas
+# con el pago"); preguntas fuera de dominio no bajan de ~0.40. 0.40 separa
+# ambos grupos con el margen más ajustado que se ha visto (~0.0045) — ver
+# "Limitaciones conocidas" del README para el caso que ningún umbral
+# arregla (una reformulación natural puede alejarse tanto de su propia
+# sección que ni con 0.40 alcanza).
+MAX_RELEVANT_DISTANCE = 0.40
 
 # Con top_k=6 pueden pasar el umbral varias secciones relacionadas; mostrar
 # las 6 como "fuente" es ruido para el usuario del chat. Se citan solo las
